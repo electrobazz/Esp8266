@@ -1,0 +1,118 @@
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+
+const char* ssid = "WiFiUSER";
+const char* password = "WiFiPASS";
+
+const int buttonPin1 = D2; // GPIO pin for button 1
+const int buttonPin2 = D3; // GPIO pin for button 2
+const int buttonPin3 = D4; // GPIO pin for button 3
+const int buttonPin4 = D5; // GPIO pin for button 4
+
+int buttonState1 = LOW;
+int buttonState2 = LOW;
+int buttonState3 = LOW;
+int buttonState4 = LOW;
+
+ESP8266WebServer server(80);
+
+void handleRoot() {
+  String webpage = "<html><head>";
+  webpage += "<style>";
+  webpage += "body { background-color: #33cc33; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }"; // Center everything vertically and horizontally
+  webpage += ".container { text-align: center; }"; // Center the content within the container
+  webpage += ".button { padding: 20px 40px; font-size: 18px; margin: 10px; border: none; border-radius: 10px; cursor: pointer; }"; // Common button styling
+  webpage += ".on-button { background-color: #ffff00; color: #000000; }"; // On button styling (yellow background, black text)
+  webpage += ".off-button { background-color: #ff0000; color: #ffffff; }"; // Off button styling (red background, white text)
+  webpage += ".on-button:hover { background-color: #0000ff; color: #ffffff; }"; // Hover effect for On button (blue background, white text)
+  webpage += ".off-button:hover { background-color: #000000; color: #ffffff; }"; // Hover effect for Off button (black background, white text)
+  webpage += "</style>";
+  webpage += "</head><body>";
+  webpage += "<div class=\"container\">";
+  webpage += "<h1>ESP8266 Web Server</h1>";
+  webpage += "<form action=\"/gpio_control\" method=\"post\">";
+  webpage += "<button class=\"button on-button\" name=\"gpio1\" value=\"1\">GPIO 1 On</button>";
+  webpage += "<button class=\"button off-button\" name=\"gpio1\" value=\"0\">GPIO 1 Off</button><br>";
+  webpage += "<button class=\"button on-button\" name=\"gpio2\" value=\"1\">GPIO 2 On</button>";
+  webpage += "<button class=\"button off-button\" name=\"gpio2\" value=\"0\">GPIO 2 Off</button><br>";
+  webpage += "<button class=\"button on-button\" name=\"gpio3\" value=\"1\">GPIO 3 On</button>";
+  webpage += "<button class=\"button off-button\" name=\"gpio3\" value=\"0\">GPIO 3 Off</button><br>";
+  webpage += "<button class=\"button on-button\" name=\"gpio4\" value=\"1\">GPIO 4 On</button>";
+  webpage += "<button class=\"button off-button\" name=\"gpio4\" value=\"0\">GPIO 4 Off</button><br>";
+  webpage += "</form>";
+  webpage += "</div></body></html>";
+  server.send(200, "text/html", webpage);
+}
+
+
+
+
+
+
+
+
+
+
+void gpioControl() {
+  if (server.args() > 0 ) {
+    for (uint8_t i = 0; i < server.args(); i++ ) {
+      if(server.argName(i) == "gpio1") {
+        int value = server.arg(i).toInt(); // Convert argument to integer
+        Serial.print("gpio1 value: ");
+        Serial.println(value); // Print the integer value
+        digitalWrite(buttonPin1, value);
+      }
+      if(server.argName(i) == "gpio2") {
+        int value = server.arg(i).toInt(); // Convert argument to integer
+        Serial.print("gpio2 value: ");
+        Serial.println(value); // Print the integer value
+        digitalWrite(buttonPin2, value);
+      }
+      if(server.argName(i) == "gpio3") {
+        int value = server.arg(i).toInt(); // Convert argument to integer
+        Serial.print("gpio3 value: ");
+        Serial.println(value); // Print the integer value
+        digitalWrite(buttonPin3, value);
+      }
+      if(server.argName(i) == "gpio4") {
+        int value = server.arg(i).toInt(); // Convert argument to integer
+        Serial.print("gpio4 value: ");
+        Serial.println(value); // Print the integer value
+        digitalWrite(buttonPin4, value);
+      }
+    }
+  }
+  handleRoot();
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(buttonPin1, OUTPUT);
+  pinMode(buttonPin2, OUTPUT);
+  pinMode(buttonPin3, OUTPUT);
+  pinMode(buttonPin4, OUTPUT);
+
+  WiFi.begin(ssid, password);
+  Serial.println("");
+  
+  // Wait for connection
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.print("Connected to ");
+  Serial.println(ssid);
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+  
+  server.on("/", HTTP_GET, handleRoot);
+  server.on("/gpio_control", HTTP_POST, gpioControl);
+  server.begin();
+  Serial.println("HTTP server started");
+}
+
+void loop() {
+  server.handleClient();
+}
